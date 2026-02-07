@@ -5,7 +5,7 @@
 // Obsidian API 配置
 const DEFAULT_CONFIG = {
   apiKey: '',
-  port: 27124,
+  port: 27123,
   folder: 'Archive',
   filenameTemplate: '{{title}}',
   noteTemplate: '',

@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (response && response.success) {
         const config = response.config;
         apiKeyInput.value = config.apiKey || '';
-        portInput.value = config.port || 27124;
+        portInput.value = config.port || 27123;
         folderInput.value = config.folder || 'Archive';
         filenameTemplateInput.value = config.filenameTemplate || '{{title}}';
       }
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function saveConfig() {
     const config = {
       apiKey: apiKeyInput.value.trim(),
-      port: parseInt(portInput.value) || 27124,
+      port: parseInt(portInput.value) || 27123,
       folder: folderInput.value.trim(),
       filenameTemplate: filenameTemplateInput.value.trim() || '{{title}}'
     };
