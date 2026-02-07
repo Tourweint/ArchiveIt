@@ -1,0 +1,88 @@
+/* 内容脚本样式 */
+
+/* 选择模式下的光标 */
+body.archive-selecting {
+  cursor: crosshair !important;
+}
+
+body.archive-selecting * {
+  cursor: crosshair !important;
+}
+
+/* 高亮遮罩 */
+#archive-highlight-overlay {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2147483646;
+  background: rgba(59, 130, 246, 0.15);
+  border: 2px solid rgba(59, 130, 246, 0.8);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Toast提示 */
+#archive-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2147483647;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: 350px;
+  word-wrap: break-word;
+  line-height: 1.5;
+}
+
+/* 选择确认按钮 */
+#archive-confirm-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483647;
+  background: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#archive-confirm-bar .archive-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#archive-confirm-bar .archive-btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+#archive-confirm-bar .archive-btn-primary:hover {
+  background: #2563eb;
+}
+
+#archive-confirm-bar .archive-btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+#archive-confirm-bar .archive-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+/* 选中元素的临时高亮 */
+.archive-selected {
+  outline: 3px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设置 - 网页归档助手</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>网页归档助手 - 设置</h1>
+    </header>
+
+    <main class="main">
+      <section class="section">
+        <h2>Obsidian 连接设置</h2>
+        <p class="section-desc">请确保已在Obsidian中安装并启用 Local REST API 插件</p>
+
+        <div class="form-group">
+          <label for="apiKey">API 密钥</label>
+          <input type="password" id="apiKey" placeholder="在Obsidian插件设置中查看">
+          <span class="help">在Obsidian的 Local REST API 插件设置中找到 API Key</span>
+        </div>
+
+        <div class="form-group">
+          <label for="port">API 端口</label>
+          <input type="number" id="port" value="27124" min="1" max="65535">
+          <span class="help">默认端口: 27124</span>
+        </div>
+
+        <div class="form-group">
+          <button class="btn btn-secondary" id="btnTestConnection">
+            测试连接
+          </button>
+          <span id="connectionResult" class="result"></span>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>归档设置</h2>
+
+        <div class="form-group">
+          <label for="folder">目标文件夹</label>
+          <input type="text" id="folder" placeholder="Archive" value="Archive">
+          <span class="help">笔记将保存在此文件夹下，留空则保存在根目录</span>
+        </div>
+
+        <div class="form-group">
+          <label for="filenameTemplate">文件名模板</label>
+          <input type="text" id="filenameTemplate" placeholder="{{title}}" value="{{title}}">
+          <span class="help">
+            可用变量: {{title}} 页面标题, {{date}} 日期, {{time}} 时间, {{url}} URL, {{site}} 网站名
+          </span>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>使用说明</h2>
+        <div class="help-content">
+          <h3>1. 安装 Obsidian Local REST API 插件</h3>
+          <p>在Obsidian的社区插件市场中搜索并安装 "Local REST API" 插件</p>
+
+          <h3>2. 启用插件并获取API密钥</h3>
+          <p>启用插件后，在设置页面找到 API Key，复制到上方的输入框</p>
+
+          <h3>3. 使用方式</h3>
+          <ul>
+            <li><strong>点击插件图标</strong> - 打开弹出窗口，选择归档方式</li>
+            <li><strong>右键菜单</strong> - 在页面上右键选择归档选项</li>
+            <li><strong>选择区域</strong> - 点击"选择区域归档"后在页面上点击选择</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <button class="btn btn-primary" id="btnSave">保存设置</button>
+      <span id="saveResult" class="result"></span>
+    </footer>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
