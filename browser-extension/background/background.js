@@ -145,26 +145,44 @@ const BackgroundService = {
   setupContextMenus() {
     // 移除现有菜单
     chrome.contextMenus.removeAll();
-    
-    // 创建菜单
+
+    // 创建父菜单（在页面右键时显示）
     chrome.contextMenus.create({
-      id: 'archive-page',
-      title: '归档整个页面到Obsidian',
+      id: 'archive-parent',
+      title: '归档到Obsidian',
       contexts: ['page']
     });
-    
+
+    // 子菜单：归档整个页面
+    chrome.contextMenus.create({
+      id: 'archive-page',
+      title: '归档整个页面',
+      contexts: ['page'],
+      parentId: 'archive-parent'
+    });
+
+    // 子菜单：选择区域归档
+    chrome.contextMenus.create({
+      id: 'archive-select-element',
+      title: '选择区域归档',
+      contexts: ['page'],
+      parentId: 'archive-parent'
+    });
+
+    // 选中内容时显示的菜单
     chrome.contextMenus.create({
       id: 'archive-selection',
       title: '归档选中内容到Obsidian',
       contexts: ['selection']
     });
-    
+
+    // 链接右键菜单
     chrome.contextMenus.create({
       id: 'archive-link',
       title: '归档链接到Obsidian',
       contexts: ['link']
     });
-    
+
     // 监听点击
     chrome.contextMenus.onClicked.addListener((info, tab) => {
       this.handleContextMenuClick(info, tab);
@@ -188,16 +206,16 @@ const BackgroundService = {
           await this.injectContentScript(tab.id);
           const pageData = await this.capturePage(tab.id);
           await this.sendToObsidian(pageData);
-          this.showNotification('页面已归档到Obsidian');
+          chrome.tabs.sendMessage(tab.id, { action: 'showToast', message: '页面已归档到Obsidian', type: 'success' });
           break;
-          
+
         case 'archive-selection':
           await this.injectContentScript(tab.id);
           const selectionData = await this.captureSelection(tab.id);
           await this.sendToObsidian(selectionData);
-          this.showNotification('选中内容已归档到Obsidian');
+          chrome.tabs.sendMessage(tab.id, { action: 'showToast', message: '选中内容已归档到Obsidian', type: 'success' });
           break;
-          
+
         case 'archive-link':
           const linkData = {
             title: '链接: ' + (info.linkText || info.linkUrl),
@@ -206,12 +224,20 @@ const BackgroundService = {
             captureType: 'link'
           };
           await this.sendToObsidian(linkData);
-          this.showNotification('链接已归档到Obsidian');
+          chrome.tabs.sendMessage(tab.id, { action: 'showToast', message: '链接已归档到Obsidian', type: 'success' });
+          break;
+
+        case 'archive-select-element':
+          await this.injectContentScript(tab.id);
+          chrome.tabs.sendMessage(tab.id, { action: 'startSelection' });
+          chrome.tabs.sendMessage(tab.id, { action: 'showToast', message: '请点击页面上的元素进行归档', type: 'info' });
           break;
       }
     } catch (error) {
       console.error('Context menu error:', error);
-      this.showNotification('归档失败: ' + error.message, 'basic');
+      if (tab && tab.id) {
+        chrome.tabs.sendMessage(tab.id, { action: 'showToast', message: '归档失败: ' + error.message, type: 'error' });
+      }
     }
   },
 
@@ -477,9 +503,10 @@ const BackgroundService = {
    * 显示通知
    */
   showNotification(message, type = 'basic') {
+    const iconUrl = chrome.runtime.getURL('icons/icon128.png');
     chrome.notifications.create({
       type: type,
-      iconUrl: 'icons/icon128.png',
+      iconUrl: iconUrl,
       title: '网页归档助手',
       message: message
     });

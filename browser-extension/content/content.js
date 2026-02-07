@@ -120,6 +120,11 @@ const ContentCapture = {
             }
           });
           break;
+
+        case 'showToast':
+          this.showToast(request.message, request.type || 'info');
+          sendResponse({ success: true });
+          break;
       }
     });
   },

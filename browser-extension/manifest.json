@@ -6,7 +6,9 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "contextMenus",
+    "notifications"
   ],
   "host_permissions": [
     "http://localhost:27124/*"
