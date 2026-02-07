@@ -166,7 +166,7 @@ const MarkdownConverter = {
         return quote.split('\n').map(line => `> ${line}`).join('\n') + '\n\n';
         
       case 'hr':
-        return '\n---\n\n';
+        return '\n\n---\n\n';
         
       case 'table':
         return this.convertTable(node);
@@ -187,6 +187,8 @@ const MarkdownConverter = {
       case 'section':
       case 'article':
       case 'main':
+      return `\n${this.convertElement(node)}\n\n`;
+        
       case 'span':
         return this.convertElement(node);
         
@@ -206,8 +208,12 @@ const MarkdownConverter = {
    */
   escapeText(text) {
     if (!text) return '';
+    // 规范化文本空白，避免标签间挤在一起
+    const normalized = text
+      .replace(/\u00A0/g, ' ')
+      .replace(/\s+/g, ' ');
     // 转义Markdown特殊字符
-    return text
+    return normalized
       .replace(/\\/g, '\\\\')
       .replace(/\*/g, '\\*')
       .replace(/_/g, '\\_')
@@ -268,7 +274,7 @@ const MarkdownConverter = {
       });
     });
     
-    return result + '\n';
+    return result + '\n\n';
   },
 
   /**
@@ -312,14 +318,18 @@ const MarkdownConverter = {
    */
   postProcess(markdown) {
     return markdown
+      .replace(/\r\n?/g, '\n')
       // 移除多余的空行
       .replace(/\n{3,}/g, '\n\n')
-      // 修复列表格式
-      .replace(/\n\s*-\s*/g, '\n- ')
       // 修复链接中的空格
       .replace(/\]\s+\(/g, '](')
-      // 移除行首空格
-      .replace(/^\s+/gm, '')
+      // 普通段落与块元素之间补空行，避免 Obsidian 误解析
+      .replace(
+        /^(?!\s*(?:#{1,6}\s|> |\* |- |\d+\. |\| |```|---\s*$))([^\n]*\S[^\n]*)\n(?=\s*(?:#{1,6}\s|> |\* |- |\d+\. |\| |```|---\s*$))/gm,
+        '$1\n\n'
+      )
+      // 去掉行尾空格
+      .replace(/[ \t]+$/gm, '')
       .trim();
   }
 };
