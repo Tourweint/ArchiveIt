@@ -31,9 +31,10 @@
 
 1. 在 Obsidian 中打开设置 → 社区插件
 2. 关闭安全模式
-3. 浏览社区插件，搜索 "Local REST API"
+3. 浏览社区插件，搜索 "Local REST API"（[GitHub](https://github.com/coddingtonbear/obsidian-local-rest-api)）
 4. 安装并启用插件
-5. 在插件设置中复制 API Key
+5. **勾选"启用非加密 HTTP"选项**（插件默认使用 HTTPS，扩展使用 HTTP 端口 27123）
+6. 在插件设置中复制 API Key
 
 ### 2. 安装浏览器插件
 
@@ -114,7 +115,10 @@ browser-extension/
 │   ├── html-cleaner.js    # HTML 清洗
 │   └── markdown-converter.js  # Markdown 转换
 └── icons/                 # 图标
-    └── icon.svg
+    ├── icon.svg           # SVG 源文件
+    ├── icon16.png         # 16x16 图标
+    ├── icon48.png         # 48x48 图标
+    └── icon128.png        # 128x128 图标
 ```
 
 ## 技术说明
@@ -150,6 +154,8 @@ browser-extension/
 2. 首次使用前需要在 Obsidian 中启用 Local REST API 插件
 3. API Key 请妥善保管，不要分享给他人
 4. 部分动态加载内容的页面可能无法完整捕获
+5. 某些网站有 CSP (内容安全策略) 限制，可能导致无法正常工作
+6. 需要登录才能查看的内容无法捕获（扩展无法获取你的登录状态）
 
 ## 许可证
 
