@@ -7,7 +7,7 @@ const DEFAULT_CONFIG = {
   apiKey: '',
   port: 27123,
   folder: 'Archive',
-  filenameTemplate: '{{title}}',
+  filenameTemplate: '{{date}}-{{title}}',
   noteTemplate: '',
   includeImages: true
 };
@@ -332,16 +332,20 @@ const BackgroundService = {
       throw new Error('请先在设置中配置Obsidian API密钥');
     }
 
-    // 生成文件名
-    const filename = this.generateFilename(data);
+    // 生成文件名（确保扩展名不被截断）
+    const filename = this.generateFilenameWithExt(data, '.md');
     
     // 构建文件路径
-    const filePath = this.config.folder 
-      ? `${this.config.folder}/${filename}.md`
-      : `${filename}.md`;
+    let filePath = this.config.folder 
+      ? `${this.config.folder}/${filename}`
+      : `${filename}`;
+    filePath = this.ensureFilePathExt(filePath, '.md');
 
     // 准备内容
     const content = data.content;
+
+    // 调试：确认生成的文件名与路径（可在扩展后台控制台查看）
+    console.info('[Archive] filename:', filename, 'filePath:', filePath);
 
     try {
       // 检查文件是否存在
@@ -394,7 +398,7 @@ const BackgroundService = {
   },
 
   /**
-   * 清理文件名
+   * 清理文件名（不包含扩展名）
    */
   sanitizeFilename(str) {
     return str
@@ -406,11 +410,67 @@ const BackgroundService = {
   },
 
   /**
+   * 生成文件名（包含扩展名，确保扩展名不被截断）
+   */
+  generateFilenameWithExt(data, ext = '.md') {
+    let baseName = this.generateFilename(data);
+    const extLower = ext.toLowerCase();
+
+    // 如果模板已经包含扩展名，先剥离，避免重复
+    if (baseName.toLowerCase().endsWith(extLower)) {
+      baseName = baseName.substring(0, baseName.length - ext.length);
+    }
+
+    // 清理尾部无效字符，避免出现结尾为 "-" 或 "." 的文件名
+    baseName = baseName.replace(/[.\s-]+$/g, '');
+    if (!baseName) {
+      baseName = 'untitled';
+    }
+
+    // 如果基础名已经太长，截断并添加扩展名
+    const maxBaseLength = 100 - ext.length;
+    if (baseName.length > maxBaseLength) {
+      baseName = baseName.substring(0, maxBaseLength);
+    }
+
+    return baseName + ext;
+  },
+
+  /**
+   * 确保文件路径以指定扩展名结尾（只处理最后一段）
+   */
+  ensureFilePathExt(filePath, ext = '.md') {
+    const extLower = ext.toLowerCase();
+    const parts = filePath.split('/');
+    let name = parts.pop() || '';
+    if (!name.toLowerCase().endsWith(extLower)) {
+      name = name.replace(/[.\s-]+$/g, '');
+      if (!name) {
+        name = 'untitled';
+      }
+      name = name + ext;
+    }
+    parts.push(name);
+    return parts.join('/');
+  },
+
+  /**
+   * URL 编码文件路径（保留目录分隔符）
+   */
+  encodeFilePath(filePath) {
+    return filePath
+      .split('/')
+      .map(part => encodeURIComponent(part))
+      .join('/');
+  },
+
+  /**
    * 检查文件是否存在
    */
   async checkFileExists(filePath) {
     try {
-      const response = await fetch(`http://localhost:${this.config.port}/vault/${filePath}`, {
+      const encodedPath = this.encodeFilePath(filePath);
+      const response = await fetch(`http://localhost:${this.config.port}/vault/${encodedPath}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.config.apiKey}`
@@ -426,7 +486,8 @@ const BackgroundService = {
    * 创建文件
    */
   async createFile(filePath, content) {
-    const response = await fetch(`http://localhost:${this.config.port}/vault/${filePath}`, {
+    const encodedPath = this.encodeFilePath(filePath);
+    const response = await fetch(`http://localhost:${this.config.port}/vault/${encodedPath}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${this.config.apiKey}`,
@@ -448,7 +509,8 @@ const BackgroundService = {
    */
   async updateFile(filePath, content) {
     // 先读取现有内容
-    const existingResponse = await fetch(`http://localhost:${this.config.port}/vault/${filePath}`, {
+    const encodedPath = this.encodeFilePath(filePath);
+    const existingResponse = await fetch(`http://localhost:${this.config.port}/vault/${encodedPath}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${this.config.apiKey}`
@@ -465,7 +527,7 @@ const BackgroundService = {
     const updatedContent = existingContent + '\n\n---\n\n' + content;
 
     // 写入更新后的内容
-    const response = await fetch(`http://localhost:${this.config.port}/vault/${filePath}`, {
+    const response = await fetch(`http://localhost:${this.config.port}/vault/${encodedPath}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${this.config.apiKey}`,
