@@ -260,6 +260,9 @@ const BackgroundService = {
     await chrome.scripting.executeScript({
       target: { tabId },
       files: [
+        'utils/vendor/Readability.js',
+        'utils/vendor/turndown.js',
+        'utils/vendor/turndown-plugin-gfm.js',
         'utils/site-adapters.js',
         'utils/html-cleaner.js',
         'utils/markdown-converter.js',

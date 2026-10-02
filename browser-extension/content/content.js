@@ -2,17 +2,6 @@
  * 内容脚本 - 页面内容捕获
  */
 
-// 加载工具模块
-function loadScript(url) {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = chrome.runtime.getURL(url);
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
-
 // 内容捕获器
 const ContentCapture = {
   isSelecting: false,

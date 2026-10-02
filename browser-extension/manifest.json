@@ -29,6 +29,9 @@
     {
       "matches": ["<all_urls>"],
       "js": [
+        "utils/vendor/Readability.js",
+        "utils/vendor/turndown.js",
+        "utils/vendor/turndown-plugin-gfm.js",
         "utils/site-adapters.js",
         "utils/html-cleaner.js",
         "utils/markdown-converter.js",
@@ -43,11 +46,5 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["utils/*"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  }
 }
