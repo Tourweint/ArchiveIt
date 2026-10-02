@@ -48,6 +48,12 @@ const HTMLCleaner = {
     'copy-code'
   ],
 
+  // 这些选择器命中 article/main 内部的元素时保留（文章自身的标题栏、署名栏常使用它们）
+  KEEP_INSIDE_ARTICLE: ['header', 'footer', '[role="banner"]', '[role="contentinfo"]'],
+
+  // src 匹配该模式时视为占位图，优先改用延迟加载属性里的真实地址
+  PLACEHOLDER_SRC_RE: /(^data:|1x1|pixel|spacer|blank|placeholder|loading|transparent)/i,
+
   /**
    * 清洗HTML内容
    * @param {Document} doc - 文档对象
@@ -90,7 +96,12 @@ const HTMLCleaner = {
     this.REMOVE_SELECTORS.forEach(selector => {
       try {
         const elements = doc.querySelectorAll(selector);
-        elements.forEach(el => el.remove());
+        elements.forEach(el => {
+          if (this.KEEP_INSIDE_ARTICLE.includes(selector) && el.closest('article, main')) {
+            return;
+          }
+          el.remove();
+        });
       } catch (e) {
         console.warn(`移除选择器失败: ${selector}`, e);
       }
@@ -129,11 +140,13 @@ const HTMLCleaner = {
 
   /**
    * 检查元素是否有足够的内容
+   * CJK 字符逐字计数：中文正文没有空格，按空格分词会误判为内容不足
    */
   hasEnoughContent(element) {
-    const text = element.textContent || '';
-    const wordCount = text.trim().split(/\s+/).length;
-    return wordCount > 100;
+    const text = (element.textContent || '').trim();
+    const cjkCount = (text.match(/[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]/g) || []).length;
+    const wordCount = (text.replace(/[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]/g, ' ').match(/\S+/g) || []).length;
+    return cjkCount + wordCount > 100;
   },
 
   /**
@@ -304,27 +317,27 @@ const HTMLCleaner = {
    */
   processImages(element, baseUrl) {
     const images = element.querySelectorAll('img');
-    
+
     images.forEach(img => {
+      // 优先使用延迟加载属性里的真实地址（src 可能是 1px 占位图）
+      const lazySrc = ['data-src', 'data-original', 'data-lazy-src', 'data-lazy', 'data-url']
+        .map(attr => img.getAttribute(attr))
+        .find(Boolean);
+      const currentSrc = img.getAttribute('src') || '';
+
+      if (lazySrc && (!currentSrc || this.PLACEHOLDER_SRC_RE.test(currentSrc))) {
+        img.setAttribute('src', lazySrc);
+      }
+
       // 转换相对URL为绝对URL
-      if (img.src) {
+      if (img.getAttribute('src')) {
         try {
-          img.src = new URL(img.src, baseUrl).href;
+          img.src = new URL(img.getAttribute('src'), baseUrl).href;
         } catch (e) {
           console.warn('图片URL转换失败:', img.src);
         }
       }
-      
-      // 处理data-src等延迟加载属性
-      ['data-src', 'data-original', 'data-lazy-src'].forEach(attr => {
-        const src = img.getAttribute(attr);
-        if (src && !img.src) {
-          try {
-            img.src = new URL(src, baseUrl).href;
-          } catch (e) {}
-        }
-      });
-      
+
       // 移除空alt
       if (!img.alt) {
         img.alt = '';

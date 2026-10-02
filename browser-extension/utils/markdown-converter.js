@@ -65,7 +65,7 @@ const MarkdownConverter = {
    */
   escapeYaml(str) {
     if (!str) return '';
-    return str.replace(/"/g, '\\"').replace(/\n/g, ' ');
+    return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ');
   },
 
   /**
@@ -126,12 +126,14 @@ const MarkdownConverter = {
       case 's':
         return `~~${this.convertElement(node)}~~`;
         
-      case 'code':
-        const code = this.convertElement(node);
-        if (code.includes('`')) {
-          return `\`\`\`${code}\`\`\``;
+      case 'code': {
+        // 行内代码使用原始文本，避免 escapeText 把代码里的 *、_ 等字符转义坏
+        const codeText = node.textContent;
+        if (codeText.includes('`')) {
+          return '``' + codeText + '``';
         }
-        return `\`${code}\``;
+        return '`' + codeText + '`';
+      }
         
       case 'pre':
         const codeBlock = this.getCodeContent(node);
