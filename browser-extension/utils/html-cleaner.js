@@ -36,7 +36,16 @@ const HTMLCleaner = {
     'aria-*',
     'role',
     'tabindex',
-    'style'
+    'style',
+    'class'
+  ],
+
+  // 保留的class白名单（用于代码高亮等）
+  ALLOWED_CLASSES: [
+    'language-*',
+    'hljs-*',
+    'line-numbers',
+    'copy-code'
   ],
 
   /**
@@ -227,13 +236,23 @@ const HTMLCleaner = {
    */
   cleanAttributes(element) {
     const allElements = element.querySelectorAll('*');
-    
+
     allElements.forEach(el => {
       const attributesToRemove = [];
-      
+      let classValue = '';
+
       for (const attr of el.attributes) {
         const attrName = attr.name.toLowerCase();
-        
+
+        // 特殊处理 class 属性：过滤白名单
+        if (attrName === 'class') {
+          classValue = this.filterAllowedClasses(attr.value);
+          if (!classValue) {
+            attributesToRemove.push(attr.name);
+          }
+          continue;
+        }
+
         // 检查是否需要移除
         for (const pattern of this.REMOVE_ATTRIBUTES) {
           if (pattern.endsWith('*')) {
@@ -247,9 +266,37 @@ const HTMLCleaner = {
           }
         }
       }
-      
+
+      // 移除标记的属性
       attributesToRemove.forEach(attr => el.removeAttribute(attr));
+
+      // 如果有保留的 class，重新设置
+      if (classValue) {
+        el.setAttribute('class', classValue);
+      }
     });
+  },
+
+  /**
+   * 过滤保留的 class
+   * @param {string} classValue - 原始 class 值
+   * @returns {string} 过滤后的 class 值
+   */
+  filterAllowedClasses(classValue) {
+    if (!classValue) return '';
+
+    const classes = classValue.split(/\s+/);
+    const allowed = classes.filter(cls => {
+      const lowerCls = cls.toLowerCase();
+      return this.ALLOWED_CLASSES.some(pattern => {
+        if (pattern.endsWith('*')) {
+          return lowerCls.startsWith(pattern.slice(0, -1).toLowerCase());
+        }
+        return lowerCls === pattern.toLowerCase();
+      });
+    });
+
+    return allowed.join(' ');
   },
 
   /**

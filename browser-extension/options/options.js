@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const config = response.config;
         apiKeyInput.value = config.apiKey || '';
         portInput.value = config.port || 27123;
-        folderInput.value = config.folder || 'Archive';
+        folderInput.value = config.folder || 'ArchiveBox';
         filenameTemplateInput.value = config.filenameTemplate || '{{title}}';
       }
     } catch (error) {

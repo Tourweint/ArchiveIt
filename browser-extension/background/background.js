@@ -6,7 +6,7 @@
 const DEFAULT_CONFIG = {
   apiKey: '',
   port: 27123,
-  folder: 'Archive',
+  folder: 'ArchiveBox',
   filenameTemplate: '{{date}}-{{title}}',
   noteTemplate: '',
   includeImages: true
