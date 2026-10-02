@@ -1,5 +1,7 @@
 # 网页归档助手
 
+> **⚠️ 本项目已归档，停止维护。** [Obsidian 官方 Web Clipper](https://github.com/obsidianmd/obsidian-clipper) 已覆盖同样的场景：免费、开源、维护活跃，且无需在 Obsidian 侧安装 Local REST API。建议直接使用官方方案，本仓库保留作为存档。
+
 一个浏览器插件，可以将网页内容一键捕获、清洗并发送到 Obsidian。
 
 ## 功能特性
@@ -10,15 +12,15 @@
   - 选择页面区域归档
   - 右键菜单快速归档
 
-- **智能内容清洗**
-  - 自动移除广告、导航等无关元素
-  - 提取正文内容
-  - 保留图片和链接
+- **正文提取**（基于 [Mozilla Readability](https://github.com/mozilla/readability)）
+  - 自动识别并提取正文，剔除导航、广告、页脚等无关内容
+  - 修复懒加载图片（优先读取 `data-src` 等属性，避免抓到 1px 占位图）
+  - 对中文内容做了逐字计数，不会被按空格分词的启发式误判
 
-- **Markdown 转换**
-  - HTML 自动转换为 Markdown
+- **Markdown 转换**（基于 [Turndown](https://github.com/mixmark-io/turndown) + GFM 插件）
+  - 支持 GFM 表格、删除线、任务列表
+  - 保留代码块语言标记
   - 生成 Frontmatter 元数据
-  - 支持代码块、表格等格式
 
 - **Obsidian 集成**
   - 通过 Local REST API 直接发送
@@ -89,9 +91,7 @@
 - `{{url}}` - 页面 URL
 - `{{site}}` - 网站名称
 
-默认模板：`{{title}}`
-
-生成的文件名示例：`2024-01-15-网页标题.md`
+默认模板：`{{date}}-{{title}}`
 
 ## 项目结构
 
@@ -112,8 +112,13 @@ browser-extension/
 │   ├── options.css
 │   └── options.js
 ├── utils/                 # 工具模块
-│   ├── html-cleaner.js    # HTML 清洗
-│   └── markdown-converter.js  # Markdown 转换
+│   ├── vendor/            # 第三方库（单文件构建）
+│   │   ├── Readability.js
+│   │   ├── turndown.js
+│   │   └── turndown-plugin-gfm.js
+│   ├── site-adapters.js   # 站点适配器（X/Twitter 等）
+│   ├── html-cleaner.js    # 正文提取（封装 Readability）
+│   └── markdown-converter.js  # Markdown 转换（封装 Turndown）
 └── icons/                 # 图标
     ├── icon.svg           # SVG 源文件
     ├── icon16.png         # 16x16 图标
@@ -123,24 +128,13 @@ browser-extension/
 
 ## 技术说明
 
-### HTML 清洗算法
+### 正文提取
 
-采用启发式算法识别正文内容：
-1. 优先选择语义化标签（article、main 等）
-2. 计算元素的内容分数（文本长度、段落密度等）
-3. 排除导航、广告等低分元素
+`html-cleaner.js` 将页面克隆后交给 Mozilla Readability 解析（`keepClasses` 保留代码块语言标记），解析前修复懒加载图片；Readability 无法识别正文时回退为保留 body 全文。标题、作者、发布时间、站点名等元数据优先取自 Readability 结果，缺失时回退到 meta 标签提取。
 
 ### Markdown 转换
 
-支持转换的 HTML 元素：
-- 标题：h1-h6
-- 段落、换行
-- 强调：strong、em、del
-- 链接和图片
-- 列表：ul、ol
-- 代码：code、pre
-- 表格
-- 引用：blockquote
+`markdown-converter.js` 使用 Turndown 转换 Readability 输出的 HTML，启用 GFM 插件以支持表格、删除线与任务列表；删除线覆盖为 `~~` 双波浪线以获得更好的兼容性。
 
 ### Obsidian API
 
@@ -155,7 +149,6 @@ browser-extension/
 3. API Key 请妥善保管，不要分享给他人
 4. 部分动态加载内容的页面可能无法完整捕获
 5. 某些网站有 CSP (内容安全策略) 限制，可能导致无法正常工作
-6. 需要登录才能查看的内容无法捕获（扩展无法获取你的登录状态）
 
 ## 许可证
 
